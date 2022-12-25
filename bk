@@ -1,0 +1,1 @@
+-G "Unix Makefiles" -DCMAKE_PREFIX_PATH="/home/xianzhi/.local/lib/python3.10/site-packages/torch/share/cmake"

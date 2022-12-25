@@ -1,6 +1,6 @@
 # Prerequisites
 *.d
-
+.idea/
 # Compiled Object files
 *.slo
 *.lo
@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+/cmake-build-debug/
+/cmake-build-debug/_deps/
+/cmake-build-release/
+/cmake-build-release/_deps/
+doc
+build
+#commit.sh
+#commit_info
