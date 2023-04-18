@@ -15,14 +15,7 @@ Then, install the default gcc/g++ of ubuntu22.04
 ```shell
 sudo apt-get install gcc g++ cmake python3 python3-pip
 ```
-## What is this brach?
-Use python to create a *.pt which define a VAE, and then use c++ to call it
-### First, go into python and run VAE.py
-### Second, build the c++ program, and copy the VAE.pt to its build path
-### Then we can run the c++ program which automatically builds the VAE according to *.pt
-### On going:
-- Training in C++
-- Make it works in GPU
+
 ## Requires Torch
 
 You may refer to https://pytorch.org/get-started/locally/ for mor details, following are the minimal requirements
@@ -50,7 +43,7 @@ sudo apt-get install python3 python3-pip
 ```
 
 (w/ CUDA):
-(Please make all cuda dependencies installed before pytorck!!!)
+
 ```shell
 pip3 install torch torchvision torchaudio
 ```
