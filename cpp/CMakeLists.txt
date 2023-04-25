@@ -12,10 +12,12 @@ find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(CMAKE_CUDA_STANDARD 11)
 set(CMAKE_CUDA_FLAGS "-std=c++11")
-add_executable(torchcpp main.cpp)
+add_executable(torchcpp main.cpp LinearVAE.cpp)
+
 message("${TORCH_LIBRARIES}")
 target_link_libraries(torchcpp "${TORCH_LIBRARIES}")
 set_property(TARGET torchcpp PROPERTY CXX_STANDARD 20)
+target_include_directories(torchcpp PUBLIC "include")
 #add_library(myVecAdd SHARED myVecAdd.cpp)
 #target_link_libraries(myVecAdd "${TORCH_LIBRARIES}")
 

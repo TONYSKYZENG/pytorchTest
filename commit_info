@@ -1,3 +1,1 @@
-1. add the VAE.py
-2. change main.cpp to call it
-3. create the self-defined function in VAE.py and its cpp callings
+1. create LinearVAE.py and its corresonding c++ class
