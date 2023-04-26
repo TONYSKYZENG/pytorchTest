@@ -71,38 +71,24 @@ void LinearVAE::learnStep(std::vector<float> data)
     uint64_t rows=data.size()/inputDimension;
     torch::Tensor in1 = torch::from_blob(data.data(), {rows, inputDimension}, torch::kFloat32);
     // forward
-    auto outElements=module.forward({in1}).toTuple()->elements();
-    auto x_recon=outElements[0].toTensor();
-    auto muZ=outElements[0].toTensor();
-    auto logvarZ=outElements[0].toTensor();
-    auto mu=outElements[0].toTensor();
-    auto logvar=outElements[0].toTensor();
-    //get loss
-    stack.push_back(x_recon);
-    stack.push_back(in1);
-    stack.push_back(mu);
-    stack.push_back(logvar);
-    auto ru=(lossUnderNormalMethod.get()[0])(stack).toTensor();
-    resultLoss=ru.item<float>();
-    myOpt->zero_grad();
-    ru.backward();
-    myOpt->step();
+    learnStep(in1);
     //cout<<ru<<endl;
 }
 void LinearVAE::learnStep(torch::Tensor data)
 {   torch::jit::Stack stack;
     auto outElements=module.forward({data}).toTuple()->elements();
     auto x_recon=outElements[0].toTensor();
-    auto muZ=outElements[0].toTensor();
-    auto logvarZ=outElements[0].toTensor();
-    auto mu=outElements[0].toTensor();
-    auto logvar=outElements[0].toTensor();
+    auto muZ=outElements[1].toTensor();
+    auto logvarZ=outElements[2].toTensor();
+    auto mu=outElements[3].toTensor();
+    auto logvar=outElements[4].toTensor();
     //get loss
     stack.push_back(x_recon);
     stack.push_back(data);
     stack.push_back(mu);
     stack.push_back(logvar);
     auto ru=(lossUnderNormalMethod.get()[0])(stack).toTensor();
+   // cout<<ru<<endl;
     resultLoss=ru.item<float>();
     myOpt->zero_grad();
     ru.backward();

@@ -33,7 +33,8 @@ class VAE(nn.Module):
             nn.Linear(hidden_dim, latent_dim*2 ), #muZ and logVarZ
         )
         self.muZAmptitude=nn.Sequential(
-            nn.Sigmoid()
+           # nn.Sigmoid()
+             nn.ReLU()
         )
         self.muLayer=nn.Sequential (
             nn.Linear(hidden_dim, 1 ),
@@ -116,7 +117,7 @@ class VAE(nn.Module):
         z = self.reparameterize(kMu, kLogVar)
         z=z*muZ
         #z=z*muZ
-        x_recon = z
+        x_recon =z
         
         return x_recon, muZ, logvarZ, mu, logvar
     @torch.jit.export
@@ -177,8 +178,8 @@ def draw_model(model,X,fname):
 
 def main():
     # Set the device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Define the main function
+    device='cpu'
     input_dim = 10
     hidden_dim = 64
     latent_dim = 10
@@ -209,8 +210,7 @@ def main():
     save_model(model,"linearVAE_raw.pt",X)
     num_epochs=100
     model.train()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model=model.to('cuda')
+    model=model.to(device)
     model.loadPriorDist(torch.mean(X),torch.std(X),torch.tensor(1.0),torch.tensor(1.0))
     # Train the model
     batch_idx=0
@@ -218,11 +218,11 @@ def main():
             train_loss = 0
             for batch_idx in range(0, num_samples, batch_size):
                 model.train()
-                x = X[batch_idx:batch_idx+batch_size].to('cuda')
+                #x = X[batch_idx:batch_idx+batch_size].to('cuda')
+                x = X[batch_idx:batch_idx+batch_size].to(device)
                 optimizer.zero_grad()
                 x_recon, muZ, logvarZ, mu, logvar = model(x)
                 loss = model.loss_function(x_recon, x, muZ, logvarZ, mu, logvar)
-                optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
                 train_loss += loss.item()
@@ -235,12 +235,12 @@ def main():
    
     #model.eval()
     #model=model.to('cpu')
-    Y= torch.tensor([5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.4,5.2]).to('cuda')
+    Y= torch.tensor([5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.4,5.2]).to(device)
     Y = Y.reshape(1, -1)
     Y=Y+1
     
     #print(tmu,tSigma,ta/tb)
-    x=X.to('cuda')
+    x=X.to(device)
     model.eval()
     x_recon,muZ, logvarZ, mu, logvar=model(Y)
     print(mu,logvar.exp(),muZ)
