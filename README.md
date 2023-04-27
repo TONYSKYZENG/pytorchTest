@@ -38,9 +38,9 @@ sudo dpkg -i cuda-keyring_1.0-1_all.deb
 sudo apt-get update
 sudo apt-get install cuda
 sudo apt-get install nvidia-gds
-sudo apt-get install libcudnn8 libcudnn8-dev libcublas*
+sudo apt-get install libcudnn8 libcudnn8-dev libcublas-11-7
 ```
-
+The libcublas depends on your specific version.
 Then you may have to reboot for enabling cuda.
 
 ### (Required) Install pytorch
