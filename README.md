@@ -60,7 +60,11 @@ pip3 install torch torchvision torchaudio
 ```shell
 pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
 ```
-
+### (Required) Install graphviz
+```shell
+sudo apt-get install graphviz
+pip install torchviz
+```
 ## How to build
 (CUDA-related is only necessary if your pytorch has cuda, but it's harmless if you don't have cuda.)
 ### Build in shell
