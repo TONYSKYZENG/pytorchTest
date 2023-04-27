@@ -22,7 +22,7 @@ class VAE(nn.Module):
         super(VAE, self).__init__()
         
         self.encoder = nn.Sequential(
-            #TransformerEncoder(input_dim, hidden_dim, num_layers, num_heads),
+           # TransformerEncoder(input_dim, hidden_dim, num_layers, num_heads),
             nn.Linear(input_dim, hidden_dim),
             #nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
@@ -33,8 +33,8 @@ class VAE(nn.Module):
             nn.Linear(hidden_dim, latent_dim*2 ), #muZ and logVarZ
         )
         self.muZAmptitude=nn.Sequential(
-           # nn.Sigmoid()
-             nn.ReLU()
+           nn.Sigmoid()
+           #nn.ReLU()
         )
         self.muLayer=nn.Sequential (
             nn.Linear(hidden_dim, 1 ),
@@ -94,6 +94,7 @@ class VAE(nn.Module):
         zEvaluate=self.zLayer(xWarp)
         muZ=zEvaluate[:, :self.latent_dim]
         muZ=self.muZAmptitude(muZ)
+        muZ=self.latent_dim/torch.sum(muZ)*muZ
         logvarZ=zEvaluate[:, self.latent_dim:(self.latent_dim*2)]
         #global
         mu= self.muLayer(xWarp)
@@ -101,11 +102,8 @@ class VAE(nn.Module):
         #update mu
         self.lastMu=mu
         self.lastSigma=logvar
-        #update \tau
-    
-        #logvar=xWarp[:, self.latent_dim*2+1]
-        
-        
+        #update \ta
+        #logvar=xWarp[:, self.latent_dim*2+1
         #z = torch.cat((z, mu.unsqueeze(1), logvar.unsqueeze(1)), dim=1)
         kMu=torch.ones_like(muZ)*torch.mean(mu)
         self.lastA0=(self.priorA0+self.inputDim/2)
@@ -138,7 +136,8 @@ class VAE(nn.Module):
         return recon_loss+kl_div
     @torch.jit.export 
     def lossUnderPretrain(self, x_recon, x, pmu, mu):
-        recon_loss = F.mse_loss(x_recon, x, reduction='mean')
+        #recon_loss = F.mse_loss(x_recon, x, reduction='mean')
+        recon_loss=0
         mu_loss=F.mse_loss(mu, pmu, reduction='mean')
         return mu_loss+recon_loss
     def loss_function(self, x_recon, x, muZ, logvarZ, mu, logvar):
@@ -175,29 +174,43 @@ def draw_model(model,X,fname):
     x2=X.to('cpu')
     dot = make_dot(m2(x2), params=None,show_attrs=False,show_saved=False)
     dot.render(fname, format='pdf')
-
+def genX(num_samples,input_dim,maxBase):
+     amptitude=torch.rand(1)*maxBase
+     noiseX= torch.randn(1, input_dim)*amptitude*0.1
+     baseX=torch.ones_like(noiseX)*amptitude
+     sx=baseX+noiseX
+     sy=amptitude
+     for i in range(num_samples):
+        amptitude=torch.rand(1)*maxBase
+        noiseX= torch.randn(1, input_dim)*amptitude*0.1
+        baseX=torch.ones_like(noiseX)*amptitude
+        tx=baseX+noiseX
+        ty=amptitude
+        sx=torch.cat((sx, tx), dim=0)
+        sy=torch.cat((sy, ty), dim=0)
+        #sx=torch.cat((sx,tx.unsqueeze(0)), dim=0)
+     return sx,sy
 def main():
     # Set the device
     # Define the main function
-    device='cpu'
+    device='cuda'
     input_dim = 10
     hidden_dim = 64
     latent_dim = 10
     num_layers = 4
     num_heads = 1
-    batch_size = 10
     # Define the hyperparameters
     epochs = 10
-    batch_size = 128
+    batch_size = 100
     learning_rate = 1e-3
 
     # Generate the input data X
     
     num_samples = 1000
    
-    noiseX= torch.randn(num_samples, input_dim)
-    baseX=torch.ones_like(noiseX)*5
-    X=baseX+noiseX
+    #noiseX= torch.randn(num_samples, input_dim)
+    #baseX=torch.ones_like(noiseX)*5
+    X,Y= genX(num_samples,input_dim,10)
     #X = torch.tensor([1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0])
     #X = torch.randn(num_samples, input_size)
     #print(X)
@@ -211,18 +224,22 @@ def main():
     num_epochs=100
     model.train()
     model=model.to(device)
-    model.loadPriorDist(torch.mean(X),torch.std(X),torch.tensor(1.0),torch.tensor(1.0))
+    
     # Train the model
     batch_idx=0
     for epoch in range(1, epochs + 1):
             train_loss = 0
             for batch_idx in range(0, num_samples, batch_size):
                 model.train()
+                
                 #x = X[batch_idx:batch_idx+batch_size].to('cuda')
                 x = X[batch_idx:batch_idx+batch_size].to(device)
+                y= Y[batch_idx:batch_idx+batch_size].to(device)
+                model.loadPriorDist(torch.mean(x[0]),torch.std(x[0]),torch.tensor(1.0),torch.tensor(1.0))
                 optimizer.zero_grad()
                 x_recon, muZ, logvarZ, mu, logvar = model(x)
-                loss = model.loss_function(x_recon, x, muZ, logvarZ, mu, logvar)
+                #loss = model.loss_function(x_recon, x, muZ, logvarZ, mu, logvar)
+                loss=model.lossUnderPretrain(x_recon,x,y,mu)
                 loss.backward()
                 optimizer.step()
                 train_loss += loss.item()
@@ -237,7 +254,7 @@ def main():
     #model=model.to('cpu')
     Y= torch.tensor([5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.4,5.2]).to(device)
     Y = Y.reshape(1, -1)
-    Y=Y+1
+    Y=Y
     
     #print(tmu,tSigma,ta/tb)
     x=X.to(device)
