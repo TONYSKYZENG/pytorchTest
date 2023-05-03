@@ -30,6 +30,7 @@
 *.exe
 *.out
 *.app
+*.pt
 build
 /cmake-build-debug/
 /cmake-build-debug/_deps/
