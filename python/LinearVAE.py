@@ -285,7 +285,7 @@ def main():
     
     # Train the model
     batch_idx=0
-    
+    #Note: first learn the certainties, then get the uncertainties
     supervisedTrain(model,X,Y,batch_size,1e-3,100,device)
     unSupervisedTrain(model,X,batch_size,1e-3,10,device)
     #model.eval()
